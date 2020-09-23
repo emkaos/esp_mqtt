@@ -44,7 +44,7 @@ USER_LIB				=
 LIB_MODULES			= mqtt
 
 SDK_LIBDIR = lib
-SDK_LIBS = c gcc phy pp net80211 wpa main lwip crypto ssl json driver
+SDK_LIBS = c gcc phy pp net80211 wpa main lwip crypto ssl json driver m
 SDK_INC = include include/json
 
 

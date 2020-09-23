@@ -31,11 +31,157 @@
 #include "driver/uart.h"
 #include "osapi.h"
 #include "mqtt.h"
+#include "math.h"
 #include "wifi.h"
 #include "debug.h"
 #include "gpio.h"
 #include "user_interface.h"
 #include "mem.h"
+#include "driver/i2c_master.h"
+
+#define GAddr 0x4A
+
+void ICACHE_FLASH_ATTR init_gy49() 
+{
+        INFO("i2c_gpio_init\n");
+	i2c_master_gpio_init();
+        INFO("i2c_init\n");
+        i2c_master_init();
+
+	/*
+	// Start I2C Transmission
+	uint8_t i2c_addr_write = (GAddr << 1);
+	i2c_master_start();
+	i2c_master_writeByte(i2c_addr_write);
+	bool r = i2c_master_checkAck();
+        INFO("1:i2c_master_checkAck %d\n", r);
+
+        // Select configuration register
+	i2c_master_writeByte(0x02);
+        r = i2c_master_checkAck();
+        INFO("2:i2c_master_checkAck %d\n", r);
+        // Continuous mode, Integration time = 800 ms
+	i2c_master_writeByte(0x40);
+        r = i2c_master_checkAck();
+        INFO("3:i2c_master_checkAck %d\n", r);
+	// Stop I2C transmission
+	i2c_master_stop();
+	*/
+}
+
+float ICACHE_FLASH_ATTR read_gy49()
+{
+	  unsigned int data[2];
+	  uint8_t i2c_addr_write = (GAddr << 1);
+	  uint8_t i2c_addr_read = (GAddr << 1 | 1);
+
+	  i2c_master_start();
+	  //i2c_master_writeByte((uint8)((DS3231_ADDR << 1) | 1));
+	  //
+
+	  i2c_master_writeByte(i2c_addr_write);
+	  uint8_t r = i2c_master_checkAck();
+	  INFO("Received Ack: %d \n");
+
+	  i2c_master_writeByte(0x03);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d \n");
+
+	  i2c_master_start();
+
+	  i2c_master_writeByte(i2c_addr_read);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d ir\n");
+
+	  data[0] = i2c_master_readByte();
+	  i2c_master_send_nack();
+
+	  i2c_master_start();
+
+	  i2c_master_writeByte(i2c_addr_write);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d \n");
+
+	  i2c_master_writeByte(0x04);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d \n");
+
+	  i2c_master_start();
+
+	  i2c_master_writeByte(i2c_addr_read);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d \n");
+
+	  data[1] = i2c_master_readByte();
+	  i2c_master_send_nack();
+
+
+	  i2c_master_stop();
+
+
+	  //data[1] = i2c_master_readByte();
+	  //i2c_master_send_nack();
+
+	  /*
+	  i2c_master_start();
+	  i2c_master_writeByte(i2c_addr_write);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d ir\n");
+	  i2c_master_writeByte(0x04);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d ir\n");
+	  i2c_master_start();
+	  i2c_addr_write = (GAddr << 1);
+	  i2c_master_writeByte(i2c_addr_read);
+	  r = i2c_master_checkAck();
+	  INFO("Received Ack: %d ir\n");
+	  data[1] = i2c_master_readByte();
+	  i2c_master_send_nack();
+	  i2c_master_stop();
+	  */
+
+
+	  /*
+	  // Start I2C Transmission
+	  i2c_master_start();
+          INFO("4:i2c_master_checkAck %d\n", r);
+
+	  // Select data register
+	  i2c_master_writeByte(0x03);
+          r = i2c_master_checkAck();
+          INFO("5:i2c_master_checkAck %d\n", r);
+	  // Stop I2C transmission
+	  i2c_master_stop();
+
+	  // Read 2 bytes of data
+	  // luminance msb, luminance lsb
+	  data[0] = i2c_master_readByte();
+	  i2c_master_send_nack();
+
+
+	  i2c_master_writeByte(0x04);
+          r = i2c_master_checkAck();
+          INFO("5:i2c_master_checkAck %d\n", r);
+	  // Stop I2C transmission
+	  i2c_master_stop();
+
+	  data[1] = i2c_master_readByte();
+	  i2c_master_send_nack();
+	  */
+          INFO("READ lumi byte 1 %d\n", data[0]);
+          INFO("READ lumi byte 2 %d\n", data[1]);
+
+	  // Convert the data to lux
+	  int exponent = (data[0] & 0xF0) >> 4;
+	  int mantissa = ((data[0] & 0x0F) << 4) | (data[1] & 0x0F);
+
+          INFO("exponent %d\n", exponent);
+          INFO("mantissa %d\n", mantissa);
+	  float luminance = pow(2,exponent) * mantissa * 0.045;
+	  return luminance;
+}
+
+
 
 MQTT_Client mqttClient;
 static void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status)
@@ -62,10 +208,19 @@ static void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args)
    int voltage = system_adc_read();
    char str[5];
    os_sprintf(str, "%d", voltage);
-    INFO("Voltage: %s", str);
+   INFO("Voltage: %s\n", str);
 
    MQTT_Publish(client, "/mqtt/topic/0", str, 6, 0, 0);
 
+
+   // read luminance
+   float l = read_gy49();
+   int l1 = l;
+   int l2 = (l - l1) * 1000;
+   INFO("Lux: %d.%d", l1,l2);
+   char lstr[20];
+   os_sprintf(lstr, "%d.%d", l1,l2);
+   MQTT_Publish(client, "/mqtt/topic/1", lstr, 6, 0, 0);
 }
 
 static void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args)
@@ -130,7 +285,11 @@ static void ICACHE_FLASH_ATTR app_init(void)
   MQTT_OnData(&mqttClient, mqttDataCb);
 
   WIFI_Connect(STA_SSID, STA_PASS, wifiConnectCb);
+
+  // init gy49
+  init_gy49();
 }
+
 void user_init(void)
 {
   system_init_done_cb(app_init);
