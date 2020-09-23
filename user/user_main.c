@@ -38,6 +38,8 @@
 #include "user_interface.h"
 #include "mem.h"
 #include "driver/i2c_master.h"
+#include "driver/I2C.h"
+#include "driver/BME280.h"
 
 #define GAddr 0x4A
 
@@ -127,6 +129,34 @@ float ICACHE_FLASH_ATTR read_gy49() {
   return luminance;
 }
 
+uint8 read_ChipId() {
+  uint8_t i2c_addr_write = (0x76 << 1);
+  uint8_t i2c_addr_read = (0x76 << 1 | 1);
+  uint8 data;
+
+  i2c_master_start();
+
+  i2c_master_writeByte(i2c_addr_write);
+  uint8_t r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
+
+  i2c_master_writeByte(0xD0);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
+
+  i2c_master_start();
+
+  i2c_master_writeByte(i2c_addr_read);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d ir\n");
+
+  data = i2c_master_readByte();
+  i2c_master_send_nack();
+
+  i2c_master_stop();
+
+  return data;
+}
 
 
 MQTT_Client mqttClient;
@@ -165,6 +195,17 @@ static void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
   char lstr[20];
   os_sprintf(lstr, "%d.%d", l1, l2);
   MQTT_Publish(client, "/mqtt/topic/1", lstr, 6, 0, 0);
+
+
+  // bme280 stuff
+  //
+  sint32 t;
+  sint32 h;
+  sint32 p;
+  BME280_ReadAll(&t, &p, &h);
+  INFO("Temperature: %d.%d\n", t / 100, (t % 100) * 100);
+
+
 }
 
 static void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args) {
@@ -216,16 +257,37 @@ static void ICACHE_FLASH_ATTR app_init(void) {
     return;
   }
   //MQTT_InitClient(&mqttClient, "client_id", "user", "pass", 120, 1);
-  MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
-  MQTT_OnConnected(&mqttClient, mqttConnectedCb);
-  MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
-  MQTT_OnPublished(&mqttClient, mqttPublishedCb);
-  MQTT_OnData(&mqttClient, mqttDataCb);
+//  MQTT_InitLWT(&mqttClient, "/lwt", "offline", 0, 0);
+//  MQTT_OnConnected(&mqttClient, mqttConnectedCb);
+//  MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
+//  MQTT_OnPublished(&mqttClient, mqttPublishedCb);
+//  MQTT_OnData(&mqttClient, mqttDataCb);
 
-  WIFI_Connect(STA_SSID, STA_PASS, wifiConnectCb);
+//  WIFI_Connect(STA_SSID, STA_PASS, wifiConnectCb);
 
   // init gy49
   init_gy49();
+
+  float l = read_gy49();
+  int l1 = l;
+  int l2 = (l - l1) * 1000;
+  INFO("Lux: %d.%d", l1, l2);
+
+  int r = BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_05);
+  
+  uint8 data = read_ChipId();
+//  I2C_ReadData(0x76 << 1, 0xD0, &data, 1);
+  INFO("READ Chip ID: %d", data);
+//  	
+// INFO("init BME: %d\n", r);
+
+  // bme280 stuff
+  //
+  sint32 t;
+  sint32 h;
+  sint32 p;
+  BME280_ReadAll(&t, &p, &h);
+  INFO("Temperature: %d.%d\n", t / 100, (t % 100) * 100);
 }
 
 void user_init(void) {
