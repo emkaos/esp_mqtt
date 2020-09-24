@@ -74,8 +74,6 @@ float ICACHE_FLASH_ATTR read_gy49() {
   uint8_t i2c_addr_read = (GAddr << 1 | 1);
 
   i2c_master_start();
-  //i2c_master_writeByte((uint8)((DS3231_ADDR << 1) | 1));
-  //
 
   i2c_master_writeByte(i2c_addr_write);
   uint8_t r = i2c_master_checkAck();
@@ -116,56 +114,6 @@ float ICACHE_FLASH_ATTR read_gy49() {
 
   i2c_master_stop();
 
-
-  //data[1] = i2c_master_readByte();
-  //i2c_master_send_nack();
-
-  /*
-	  i2c_master_start();
-	  i2c_master_writeByte(i2c_addr_write);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d ir\n");
-	  i2c_master_writeByte(0x04);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d ir\n");
-	  i2c_master_start();
-	  i2c_addr_write = (GAddr << 1);
-	  i2c_master_writeByte(i2c_addr_read);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d ir\n");
-	  data[1] = i2c_master_readByte();
-	  i2c_master_send_nack();
-	  i2c_master_stop();
-	  */
-
-
-  /*
-	  // Start I2C Transmission
-	  i2c_master_start();
-          INFO("4:i2c_master_checkAck %d\n", r);
-
-	  // Select data register
-	  i2c_master_writeByte(0x03);
-          r = i2c_master_checkAck();
-          INFO("5:i2c_master_checkAck %d\n", r);
-	  // Stop I2C transmission
-	  i2c_master_stop();
-
-	  // Read 2 bytes of data
-	  // luminance msb, luminance lsb
-	  data[0] = i2c_master_readByte();
-	  i2c_master_send_nack();
-
-
-	  i2c_master_writeByte(0x04);
-          r = i2c_master_checkAck();
-          INFO("5:i2c_master_checkAck %d\n", r);
-	  // Stop I2C transmission
-	  i2c_master_stop();
-
-	  data[1] = i2c_master_readByte();
-	  i2c_master_send_nack();
-	  */
   INFO("READ lumi byte 1 %d\n", data[0]);
   INFO("READ lumi byte 2 %d\n", data[1]);
 
