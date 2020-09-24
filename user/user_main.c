@@ -41,14 +41,13 @@
 
 #define GAddr 0x4A
 
-void ICACHE_FLASH_ATTR init_gy49() 
-{
-        INFO("i2c_gpio_init\n");
-	i2c_master_gpio_init();
-        INFO("i2c_init\n");
-        i2c_master_init();
+void ICACHE_FLASH_ATTR init_gy49() {
+  INFO("i2c_gpio_init\n");
+  i2c_master_gpio_init();
+  INFO("i2c_init\n");
+  i2c_master_init();
 
-	/*
+  /*
 	// Start I2C Transmission
 	uint8_t i2c_addr_write = (GAddr << 1);
 	i2c_master_start();
@@ -69,60 +68,59 @@ void ICACHE_FLASH_ATTR init_gy49()
 	*/
 }
 
-float ICACHE_FLASH_ATTR read_gy49()
-{
-	  unsigned int data[2];
-	  uint8_t i2c_addr_write = (GAddr << 1);
-	  uint8_t i2c_addr_read = (GAddr << 1 | 1);
+float ICACHE_FLASH_ATTR read_gy49() {
+  unsigned int data[2];
+  uint8_t i2c_addr_write = (GAddr << 1);
+  uint8_t i2c_addr_read = (GAddr << 1 | 1);
 
-	  i2c_master_start();
-	  //i2c_master_writeByte((uint8)((DS3231_ADDR << 1) | 1));
-	  //
+  i2c_master_start();
+  //i2c_master_writeByte((uint8)((DS3231_ADDR << 1) | 1));
+  //
 
-	  i2c_master_writeByte(i2c_addr_write);
-	  uint8_t r = i2c_master_checkAck();
-	  INFO("Received Ack: %d \n");
+  i2c_master_writeByte(i2c_addr_write);
+  uint8_t r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
 
-	  i2c_master_writeByte(0x03);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d \n");
+  i2c_master_writeByte(0x03);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
 
-	  i2c_master_start();
+  i2c_master_start();
 
-	  i2c_master_writeByte(i2c_addr_read);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d ir\n");
+  i2c_master_writeByte(i2c_addr_read);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d ir\n");
 
-	  data[0] = i2c_master_readByte();
-	  i2c_master_send_nack();
+  data[0] = i2c_master_readByte();
+  i2c_master_send_nack();
 
-	  i2c_master_start();
+  i2c_master_start();
 
-	  i2c_master_writeByte(i2c_addr_write);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d \n");
+  i2c_master_writeByte(i2c_addr_write);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
 
-	  i2c_master_writeByte(0x04);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d \n");
+  i2c_master_writeByte(0x04);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
 
-	  i2c_master_start();
+  i2c_master_start();
 
-	  i2c_master_writeByte(i2c_addr_read);
-	  r = i2c_master_checkAck();
-	  INFO("Received Ack: %d \n");
+  i2c_master_writeByte(i2c_addr_read);
+  r = i2c_master_checkAck();
+  INFO("Received Ack: %d \n");
 
-	  data[1] = i2c_master_readByte();
-	  i2c_master_send_nack();
-
-
-	  i2c_master_stop();
+  data[1] = i2c_master_readByte();
+  i2c_master_send_nack();
 
 
-	  //data[1] = i2c_master_readByte();
-	  //i2c_master_send_nack();
+  i2c_master_stop();
 
-	  /*
+
+  //data[1] = i2c_master_readByte();
+  //i2c_master_send_nack();
+
+  /*
 	  i2c_master_start();
 	  i2c_master_writeByte(i2c_addr_write);
 	  r = i2c_master_checkAck();
@@ -141,7 +139,7 @@ float ICACHE_FLASH_ATTR read_gy49()
 	  */
 
 
-	  /*
+  /*
 	  // Start I2C Transmission
 	  i2c_master_start();
           INFO("4:i2c_master_checkAck %d\n", r);
@@ -168,32 +166,30 @@ float ICACHE_FLASH_ATTR read_gy49()
 	  data[1] = i2c_master_readByte();
 	  i2c_master_send_nack();
 	  */
-          INFO("READ lumi byte 1 %d\n", data[0]);
-          INFO("READ lumi byte 2 %d\n", data[1]);
+  INFO("READ lumi byte 1 %d\n", data[0]);
+  INFO("READ lumi byte 2 %d\n", data[1]);
 
-	  // Convert the data to lux
-	  int exponent = (data[0] & 0xF0) >> 4;
-	  int mantissa = ((data[0] & 0x0F) << 4) | (data[1] & 0x0F);
+  // Convert the data to lux
+  int exponent = (data[0] & 0xF0) >> 4;
+  int mantissa = ((data[0] & 0x0F) << 4) | (data[1] & 0x0F);
 
-          INFO("exponent %d\n", exponent);
-          INFO("mantissa %d\n", mantissa);
-	  float luminance = pow(2,exponent) * mantissa * 0.045;
-	  return luminance;
+  INFO("exponent %d\n", exponent);
+  INFO("mantissa %d\n", mantissa);
+  float luminance = pow(2, exponent) * mantissa * 0.045;
+  return luminance;
 }
 
 
 
 MQTT_Client mqttClient;
-static void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status)
-{
+static void ICACHE_FLASH_ATTR wifiConnectCb(uint8_t status) {
   if (status == STATION_GOT_IP) {
     MQTT_Connect(&mqttClient);
   } else {
     MQTT_Disconnect(&mqttClient);
   }
 }
-static void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args)
-{
+static void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*)args;
   INFO("MQTT: Connected\r\n");
   //MQTT_Subscribe(client, "/mqtt/topic/0", 0);
@@ -205,40 +201,37 @@ static void ICACHE_FLASH_ATTR mqttConnectedCb(uint32_t *args)
   //MQTT_Publish(client, "/mqtt/topic/2", "hello2", 6, 2, 0);
   //
 
-   int voltage = system_adc_read();
-   char str[5];
-   os_sprintf(str, "%d", voltage);
-   INFO("Voltage: %s\n", str);
+  int voltage = system_adc_read();
+  char str[5];
+  os_sprintf(str, "%d", voltage);
+  INFO("Voltage: %s\n", str);
 
-   MQTT_Publish(client, "/mqtt/topic/0", str, 6, 0, 0);
+  MQTT_Publish(client, "/mqtt/topic/0", str, 6, 0, 0);
 
 
-   // read luminance
-   float l = read_gy49();
-   int l1 = l;
-   int l2 = (l - l1) * 1000;
-   INFO("Lux: %d.%d", l1,l2);
-   char lstr[20];
-   os_sprintf(lstr, "%d.%d", l1,l2);
-   MQTT_Publish(client, "/mqtt/topic/1", lstr, 6, 0, 0);
+  // read luminance
+  float l = read_gy49();
+  int l1 = l;
+  int l2 = (l - l1) * 1000;
+  INFO("Lux: %d.%d", l1, l2);
+  char lstr[20];
+  os_sprintf(lstr, "%d.%d", l1, l2);
+  MQTT_Publish(client, "/mqtt/topic/1", lstr, 6, 0, 0);
 }
 
-static void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args)
-{
+static void ICACHE_FLASH_ATTR mqttDisconnectedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*)args;
   INFO("MQTT: Disconnected\r\n");
 }
 
-static void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args)
-{
+static void ICACHE_FLASH_ATTR mqttPublishedCb(uint32_t *args) {
   MQTT_Client* client = (MQTT_Client*)args;
   INFO("MQTT: Published\r\n");
 }
 
-static void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
-{
+static void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
   char *topicBuf = (char*)os_zalloc(topic_len + 1),
-        *dataBuf = (char*)os_zalloc(data_len + 1);
+  *dataBuf = (char*)os_zalloc(data_len + 1);
 
   MQTT_Client* client = (MQTT_Client*)args;
   os_memcpy(topicBuf, topic, topic_len);
@@ -250,8 +243,7 @@ static void ICACHE_FLASH_ATTR mqttDataCb(uint32_t *args, const char* topic, uint
   os_free(dataBuf);
 }
 
-void ICACHE_FLASH_ATTR print_info()
-{
+void ICACHE_FLASH_ATTR print_info() {
   INFO("\r\n\r\n[INFO] BOOTUP...\r\n");
   INFO("[INFO] SDK: %s\r\n", system_get_sdk_version());
   INFO("[INFO] Chip ID: %08X\r\n", system_get_chip_id());
@@ -265,15 +257,13 @@ void ICACHE_FLASH_ATTR print_info()
 }
 
 
-static void ICACHE_FLASH_ATTR app_init(void)
-{
+static void ICACHE_FLASH_ATTR app_init(void) {
   uart_init(BIT_RATE_115200, BIT_RATE_115200);
   print_info();
   MQTT_InitConnection(&mqttClient, MQTT_HOST, MQTT_PORT, DEFAULT_SECURITY);
   //MQTT_InitConnection(&mqttClient, "192.168.11.122", 1880, 0);
 
-  if ( !MQTT_InitClient(&mqttClient, MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS, MQTT_KEEPALIVE, MQTT_CLEAN_SESSION) )
-  {
+  if (!MQTT_InitClient(&mqttClient, MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS, MQTT_KEEPALIVE, MQTT_CLEAN_SESSION)) {
     INFO("Failed to initialize properly. Check MQTT version.\r\n");
     return;
   }
@@ -290,7 +280,6 @@ static void ICACHE_FLASH_ATTR app_init(void)
   init_gy49();
 }
 
-void user_init(void)
-{
+void user_init(void) {
   system_init_done_cb(app_init);
 }
