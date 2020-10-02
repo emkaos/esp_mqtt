@@ -273,7 +273,7 @@ static void ICACHE_FLASH_ATTR app_init(void) {
   int l2 = (l - l1) * 1000;
   INFO("Lux: %d.%d", l1, l2);
 
-  int r = BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_05);
+  int r = BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_1000);
   
   uint8 data = read_ChipId();
 //  I2C_ReadData(0x76 << 1, 0xD0, &data, 1);
@@ -288,6 +288,8 @@ static void ICACHE_FLASH_ATTR app_init(void) {
   sint32 p;
   BME280_ReadAll(&t, &p, &h);
   INFO("Temperature: %d.%d\n", t / 100, (t % 100) * 100);
+  INFO("Pressure: %d.%d\n", p / 100, (p % 100) * 100);
+  INFO("Humidity: %d.%d\n", h / 100, (h % 100) * 100);
 }
 
 void user_init(void) {
