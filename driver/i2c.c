@@ -20,7 +20,7 @@
 #include "ets_sys.h"
 #include "osapi.h"
 #include "gpio.h"
-#include "i2c/i2c.h"
+#include "driver/i2c.h"
 
 /**
  * Set SDA to state
