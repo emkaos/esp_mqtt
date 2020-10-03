@@ -73,4 +73,6 @@ void user_init(void)
     }else{
         ets_uart_printf("BME280 init error.\r\n");
     }
+
+    system_os_task(user_procTask, user_procTaskPrio,user_procTaskQueue, user_procTaskQueueLen);
 }
