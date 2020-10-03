@@ -7,6 +7,9 @@
  *
  */
 
+#define user_procTaskPrio        0
+#define user_procTaskQueueLen    1
+
 #include "ets_sys.h"
 #include "driver/i2c.h"
 #include "driver/i2c_bme280.h"
